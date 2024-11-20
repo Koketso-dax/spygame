@@ -31,7 +31,19 @@ type GameAction =
   | { type: 'REVEAL_PLAYER'; index: number }
   | { type: 'CLOSE_DIALOG' }
 
-const words = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry']
+const words = ['Apple', 'Boat', 'Car', 'Date', 'Exit',
+               'Fire', 'Garden', 'Happy', 'Ice', 'Jump',
+               'Kite', 'Lemon', 'Moon', 'Night', 'Orange',
+               'Pencil', 'Queen', 'Rain', 'Sun', 'Table',
+               'Umbrella', 'Violin', 'Water', 'Xylophone', 'Yellow',
+               'Zebra', 'Zoom', 'Yacht', 'Xenon', 'Wagon',
+               'Violet', 'Umbrella', 'Tulip', 'Sushi', 'Star',
+               'Snow', 'Soccer', 'Rocket', 'Rainbow', 'Puzzle',
+               'Pirate', 'Owl', 'Ninja', 'Mushroom', 'Mango',
+               'Lighthouse', 'Kangaroo', 'Jungle', 'Iceberg', 'Horse',
+               'Guitar', 'Frog', 'Flower', 'Falcon', 'Eagle',
+               'Dragon', 'Dolphin', 'Cupcake', 'Cactus', 'Butterfly',
+               'Bicycle', 'Bee', 'Bear', 'Astronaut', 'Ant']
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
