@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Game } from './game'
+import Game from './game'
 
 export function GameSetup() {
   const [numPlayers, setNumPlayers] = useState('')

@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog"
 
 interface GameProps {
@@ -24,6 +25,11 @@ type GameState = {
   gameWord: string
   openDialog: boolean
   dialogContent: string
+  activePlayerIndex: number | null
+  allRevealed: boolean
+  timerStarted: boolean
+  timeRemaining: number
+  showInstructions: boolean
 }
 
 const words = ['Apple', 'Boat', 'Car', 'Date', 'Exit',
@@ -40,13 +46,18 @@ const words = ['Apple', 'Boat', 'Car', 'Date', 'Exit',
   'Dragon', 'Dolphin', 'Cupcake', 'Cactus', 'Butterfly',
   'Bicycle', 'Bee', 'Bear', 'Astronaut', 'Ant']
 
-export function Game({ numPlayers, onReset }: GameProps) {
+export default function Game({ numPlayers, onReset }: GameProps) {
   const [state, setState] = useState<GameState>({
     players: Array(numPlayers).fill({ revealed: false, isSpy: false }),
     spyIndex: -1,
     gameWord: '',
     openDialog: false,
-    dialogContent: ''
+    dialogContent: '',
+    activePlayerIndex: null,
+    allRevealed: false,
+    timerStarted: false,
+    timeRemaining: 5 * 60, // 5 minutes in seconds
+    showInstructions: false
   })
 
   const initGame = useCallback(() => {
@@ -59,7 +70,12 @@ export function Game({ numPlayers, onReset }: GameProps) {
         isSpy: index === spyIndex
       })),
       openDialog: false,
-      dialogContent: ''
+      dialogContent: '',
+      activePlayerIndex: null,
+      allRevealed: false,
+      timerStarted: false,
+      timeRemaining: 5 * 60,
+      showInstructions: false
     })
   }, [numPlayers])
 
@@ -67,20 +83,53 @@ export function Game({ numPlayers, onReset }: GameProps) {
     initGame()
   }, [initGame])
 
+  useEffect(() => {
+    if (state.timerStarted && state.timeRemaining > 0) {
+      const timer = setTimeout(() => {
+        setState(prevState => ({
+          ...prevState,
+          timeRemaining: prevState.timeRemaining - 1
+        }))
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [state.timerStarted, state.timeRemaining])
+
   const handleReveal = (index: number) => {
     if (state.players[index].revealed) return
     const newPlayers = [...state.players]
     newPlayers[index].revealed = true
-    setState({
-      ...state,
+    const allRevealed = newPlayers.every(player => player.revealed)
+    setState(prevState => ({
+      ...prevState,
       players: newPlayers,
       openDialog: true,
-      dialogContent: state.players[index].isSpy ? "You are the spy!" : state.gameWord
+      dialogContent: prevState.players[index].isSpy ? "You are the spy!" : prevState.gameWord,
+      activePlayerIndex: index,
+      allRevealed
+    }))
+  }
+
+  const closePlayerDialog = () => {
+    setState(prevState => {
+      const allRevealed = prevState.players.every(player => player.revealed)
+      return {
+        ...prevState,
+        openDialog: false,
+        activePlayerIndex: null,
+        showInstructions: allRevealed
+      }
     })
   }
 
-  const closeDialog = () => {
-    setState(prevState => ({ ...prevState, openDialog: false }))
+  const startTimer = () => {
+    setState(prevState => ({ ...prevState, timerStarted: true, showInstructions: false }))
+  }
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
   return (
@@ -88,7 +137,15 @@ export function Game({ numPlayers, onReset }: GameProps) {
       <h2 className="text-2xl font-bold text-center">Game in Progress</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {state.players.map((player, index) => (
-          <Dialog key={index} open={state.openDialog && player.revealed} onOpenChange={(open) => !open && closeDialog()}>
+          <Dialog 
+            key={index} 
+            open={state.openDialog && state.activePlayerIndex === index}
+            onOpenChange={(open) => {
+              if (!open) {
+                closePlayerDialog()
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button
                 onClick={() => handleReveal(index)}
@@ -114,6 +171,27 @@ export function Game({ numPlayers, onReset }: GameProps) {
           </Dialog>
         ))}
       </div>
+      <Dialog 
+        open={state.showInstructions} 
+        onOpenChange={(open) => setState(prevState => ({ ...prevState, showInstructions: open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Game Instructions</DialogTitle>
+            <DialogDescription>
+              Everyone has selected a role. The spy is among you, ask each other questions to determine who the spy could be then when you are ready, vote on who you think it might be. You have 5 minutes.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={startTimer} className="w-full">Start Timer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {state.timerStarted && (
+        <div className="mt-6 text-center">
+          <p className="text-2xl font-bold">Time Remaining: {formatTime(state.timeRemaining)}</p>
+        </div>
+      )}
       <Button onClick={onReset} className="w-full mt-4">Reset Game</Button>
     </div>
   )
