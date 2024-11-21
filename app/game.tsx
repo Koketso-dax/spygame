@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { User, UserCheck } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
@@ -26,59 +26,22 @@ type GameState = {
   dialogContent: string
 }
 
-type GameAction =
-  | { type: 'INIT_GAME' }
-  | { type: 'REVEAL_PLAYER'; index: number }
-  | { type: 'CLOSE_DIALOG' }
-
 const words = ['Apple', 'Boat', 'Car', 'Date', 'Exit',
-               'Fire', 'Garden', 'Happy', 'Ice', 'Jump',
-               'Kite', 'Lemon', 'Moon', 'Night', 'Orange',
-               'Pencil', 'Queen', 'Rain', 'Sun', 'Table',
-               'Umbrella', 'Violin', 'Water', 'Xylophone', 'Yellow',
-               'Zebra', 'Zoom', 'Yacht', 'Xenon', 'Wagon',
-               'Violet', 'Umbrella', 'Tulip', 'Sushi', 'Star',
-               'Snow', 'Soccer', 'Rocket', 'Rainbow', 'Puzzle',
-               'Pirate', 'Owl', 'Ninja', 'Mushroom', 'Mango',
-               'Lighthouse', 'Kangaroo', 'Jungle', 'Iceberg', 'Horse',
-               'Guitar', 'Frog', 'Flower', 'Falcon', 'Eagle',
-               'Dragon', 'Dolphin', 'Cupcake', 'Cactus', 'Butterfly',
-               'Bicycle', 'Bee', 'Bear', 'Astronaut', 'Ant']
-
-function gameReducer(state: GameState, action: GameAction): GameState {
-  switch (action.type) {
-    case 'INIT_GAME':
-      const spyIndex = Math.floor(Math.random() * state.players.length)
-      return {
-        ...state,
-        spyIndex,
-        gameWord: words[Math.floor(Math.random() * words.length)],
-        players: Array(state.players.length).fill(null).map((_, index) => ({
-          revealed: false,
-          isSpy: index === spyIndex
-        })),
-        openDialog: false,
-        dialogContent: ''
-      }
-    case 'REVEAL_PLAYER':
-      if (state.players[action.index].revealed) return state
-      const newPlayers = [...state.players]
-      newPlayers[action.index].revealed = true
-      return {
-        ...state,
-        players: newPlayers,
-        openDialog: true,
-        dialogContent: state.players[action.index].isSpy ? "You are the spy!" : state.gameWord
-      }
-    case 'CLOSE_DIALOG':
-      return { ...state, openDialog: false }
-    default:
-      return state
-  }
-}
+  'Fire', 'Garden', 'Happy', 'Ice', 'Jump',
+  'Kite', 'Lemon', 'Moon', 'Night', 'Orange',
+  'Pencil', 'Queen', 'Rain', 'Sun', 'Table',
+  'Umbrella', 'Violin', 'Water', 'Xylophone', 'Yellow',
+  'Zebra', 'Zoom', 'Yacht', 'Xenon', 'Wagon',
+  'Violet', 'Umbrella', 'Tulip', 'Sushi', 'Star',
+  'Snow', 'Soccer', 'Rocket', 'Rainbow', 'Puzzle',
+  'Pirate', 'Owl', 'Ninja', 'Mushroom', 'Mango',
+  'Lighthouse', 'Kangaroo', 'Jungle', 'Iceberg', 'Horse',
+  'Guitar', 'Frog', 'Flower', 'Falcon', 'Eagle',
+  'Dragon', 'Dolphin', 'Cupcake', 'Cactus', 'Butterfly',
+  'Bicycle', 'Bee', 'Bear', 'Astronaut', 'Ant']
 
 export function Game({ numPlayers, onReset }: GameProps) {
-  const [state, dispatch] = useReducer(gameReducer, {
+  const [state, setState] = useState<GameState>({
     players: Array(numPlayers).fill({ revealed: false, isSpy: false }),
     spyIndex: -1,
     gameWord: '',
@@ -86,25 +49,52 @@ export function Game({ numPlayers, onReset }: GameProps) {
     dialogContent: ''
   })
 
-  useEffect(() => {
-    dispatch({ type: 'INIT_GAME' })
+  const initGame = useCallback(() => {
+    const spyIndex = Math.floor(Math.random() * numPlayers)
+    setState({
+      spyIndex,
+      gameWord: words[Math.floor(Math.random() * words.length)],
+      players: Array(numPlayers).fill(null).map((_, index) => ({
+        revealed: false,
+        isSpy: index === spyIndex
+      })),
+      openDialog: false,
+      dialogContent: ''
+    })
   }, [numPlayers])
 
+  useEffect(() => {
+    initGame()
+  }, [initGame])
+
   const handleReveal = (index: number) => {
-    dispatch({ type: 'REVEAL_PLAYER', index })
+    if (state.players[index].revealed) return
+    const newPlayers = [...state.players]
+    newPlayers[index].revealed = true
+    setState({
+      ...state,
+      players: newPlayers,
+      openDialog: true,
+      dialogContent: state.players[index].isSpy ? "You are the spy!" : state.gameWord
+    })
+  }
+
+  const closeDialog = () => {
+    setState(prevState => ({ ...prevState, openDialog: false }))
   }
 
   return (
     <div className="space-y-6 w-full max-w-md mx-auto px-4">
       <h2 className="text-2xl font-bold text-center">Game in Progress</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {state.players.map((player, index) => (
-          <Dialog key={index} open={state.openDialog && player.revealed} onOpenChange={(open) => !open && dispatch({ type: 'CLOSE_DIALOG' })}>
+          <Dialog key={index} open={state.openDialog && player.revealed} onOpenChange={(open) => !open && closeDialog()}>
             <DialogTrigger asChild>
               <Button
                 onClick={() => handleReveal(index)}
                 disabled={player.revealed}
-                className="h-24 w-24"
+                className="w-full h-20 sm:h-24"
+                aria-label={`Player ${index + 1}`}
               >
                 {player.revealed ? (
                   <UserCheck className="h-8 w-8 sm:h-12 sm:w-12" />
