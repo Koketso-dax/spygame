@@ -95,9 +95,9 @@ export function Game({ numPlayers, onReset }: GameProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Game in Progress</h2>
-      <div className="grid grid-cols-3 gap-4">
+    <div className="space-y-6 w-full max-w-md mx-auto px-4">
+      <h2 className="text-2xl font-bold text-center">Game in Progress</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-4">
         {state.players.map((player, index) => (
           <Dialog key={index} open={state.openDialog && player.revealed} onOpenChange={(open) => !open && dispatch({ type: 'CLOSE_DIALOG' })}>
             <DialogTrigger asChild>
@@ -107,9 +107,9 @@ export function Game({ numPlayers, onReset }: GameProps) {
                 className="h-24 w-24"
               >
                 {player.revealed ? (
-                  <UserCheck className="h-12 w-12" />
+                  <UserCheck className="h-8 w-8 sm:h-12 sm:w-12" />
                 ) : (
-                  <User className="h-12 w-12" />
+                  <User className="h-8 w-8 sm:h-12 sm:w-12" />
                 )}
               </Button>
             </DialogTrigger>
@@ -124,7 +124,7 @@ export function Game({ numPlayers, onReset }: GameProps) {
           </Dialog>
         ))}
       </div>
-      <Button onClick={onReset} className="mt-4">Reset Game</Button>
+      <Button onClick={onReset} className="w-full mt-4">Reset Game</Button>
     </div>
   )
 }
