@@ -15,6 +15,7 @@ import {
 
 interface GameProps {
   numPlayers: number
+  gameTime: number
   onReset: () => void
 }
 
@@ -46,7 +47,7 @@ const words = ['Apple', 'Boat', 'Car', 'Date', 'Exit',
   'Dragon', 'Dolphin', 'Cupcake', 'Cactus', 'Butterfly',
   'Bicycle', 'Bee', 'Bear', 'Astronaut', 'Ant']
 
-export default function Game({ numPlayers, onReset }: GameProps) {
+export default function Game({ numPlayers, gameTime, onReset }: GameProps) {
   const [state, setState] = useState<GameState>({
     players: Array(numPlayers).fill({ revealed: false, isSpy: false }),
     spyIndex: -1,
@@ -56,7 +57,7 @@ export default function Game({ numPlayers, onReset }: GameProps) {
     activePlayerIndex: null,
     allRevealed: false,
     timerStarted: false,
-    timeRemaining: 5 * 60, // 5 minutes in seconds
+    timeRemaining: gameTime * 60, // Convert minutes to seconds
     showInstructions: false
   })
 
@@ -74,10 +75,10 @@ export default function Game({ numPlayers, onReset }: GameProps) {
       activePlayerIndex: null,
       allRevealed: false,
       timerStarted: false,
-      timeRemaining: 5 * 60,
+      timeRemaining: gameTime * 60,
       showInstructions: false
     })
-  }, [numPlayers])
+  }, [numPlayers, gameTime])
 
   useEffect(() => {
     initGame()
@@ -167,6 +168,9 @@ export default function Game({ numPlayers, onReset }: GameProps) {
                   {state.dialogContent}
                 </DialogDescription>
               </DialogHeader>
+              <DialogFooter>
+                <p className="text-sm text-muted-foreground">Close this dialog and pass the phone to another player</p>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         ))}
@@ -179,7 +183,7 @@ export default function Game({ numPlayers, onReset }: GameProps) {
           <DialogHeader>
             <DialogTitle>Game Instructions</DialogTitle>
             <DialogDescription>
-              Everyone has selected a role. The spy is among you, ask each other questions to determine who the spy could be then when you are ready, vote on who you think it might be. You have 5 minutes.
+              Everyone has selected a role. The spy is among you, ask each other questions to determine who the spy could be then when you are ready, vote on who you think it might be. You have {gameTime} minutes.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
