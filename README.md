@@ -9,3 +9,5 @@ this will install all dependencies
 - `npm build` then `npm start`
 
 Please note: due to a bug using useReducer() this only works if built not in dev.
+
+Just enter the number of players, set a time limit and play.
