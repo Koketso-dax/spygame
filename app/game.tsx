@@ -49,7 +49,7 @@ const words = ['Apple', 'Boat', 'Car', 'Date', 'Exit',
 
 export default function Game({ numPlayers, gameTime, onReset }: GameProps) {
   const [state, setState] = useState<GameState>({
-    players: Array(numPlayers).fill({ revealed: false, isSpy: false }),
+    players: Array(numPlayers).fill(null).map(() => ({ revealed: false, isSpy: false })),
     spyIndex: -1,
     gameWord: '',
     openDialog: false,
